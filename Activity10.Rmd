@@ -1,0 +1,123 @@
+---
+title: "Activity10"
+author: "Adam Melenski"
+date: "2023-11-15"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+library(groundhog)
+knitr::opts_chunk$set(echo = FALSE)
+
+pkgs <- c("ggplot2", "dplyr", "knitr", "kableExtra")
+groundhog.library(pkgs, "2023-11-01")
+
+```
+
+## Collatz Conjecture
+
+The Collatz Conjecture asks whether repeating the same two arithmetic operations will transform every positive integer into 1. I will be investigating the distribution of stopping times for the first 10,000 positive integers. The following shows the code used to calculate the stop times using the Collatz Conjecture and to create a histogram of the stop times: 
+
+```{r collatz}
+#| fig.dim = c(5, 3)
+
+#code for Collatz Conjecture
+collatz <- function(num , stopTime = 0) {
+  if(num == 1) {
+      return(stopTime)
+  } else if(num %% 2 == 0) {
+      return(collatz(num / 2, stopTime + 1))
+  } else {
+      return(collatz(num*3 + 1, stopTime + 1))
+  }
+}
+
+#creates vector of stop times for first 10000 positive integers
+stoppingNumbers <- sapply(X = 1:10000, FUN = collatz)
+
+#converts vector to data frame and makes histogram using ggplot
+tibble(stopTime = stoppingNumbers) %>%
+  ggplot(aes(x = stopTime)) +
+  geom_histogram(color = "#000000", bins = 30) +
+  labs(
+    title = "Stopping Times",
+    x = "Stop Time",
+    y = "Count"
+  ) + 
+  theme_classic()
+
+```
+
+From the histogram we can see that the stop times range from 0 to around 250 with a median of around 50. Also the histogram appears to be skewed right.
+
+## Diamonds
+
+Using the Diamonds data set from the ggplot2 package I will investigate if there is a relationship between a diamonds attributes and its price. 
+
+```{r diamonds}
+#| fig.dim = c(8, 4)
+
+#makes scatterplot comparing diamonds carat to its price
+ggplot(diamonds, aes(x = carat, y = price, colour = clarity)) +
+  geom_point(shape = "circle", size = 1.5) +
+  scale_color_hue(direction = 1) +
+  theme_classic() +
+  ggtitle("Relation between diamond's carat and price") +
+  geom_smooth(formula = y ~ x, method='lm') +
+  ylab("Price ($)")
+
+```
+
+This data visualization compares the relationship between a diamond's carat and its clarity to its price. The visualization shows that as the diamond carat goes up, so does its price. Also, a diamond that has the same carats but better clarity likely will be a higher price. This visualization can help make predictions about the price of a diamond with a known carat and clarity.
+
+
+The following code is used to make a table of statistics using knitr and kableExtra:
+
+```{r diamondTable}
+#wrangling data into data frame of statistics
+diamondFrame <- diamonds %>%
+  select(cut, price) %>%
+  group_by(cut) %>%
+  summarise(
+    min = min(price, na.rm = TRUE),
+    Quin1 = quantile(price, probs = 0.2, na.rm = TRUE),
+    Quin2 = quantile(price, probs = 0.4, na.rm = TRUE),
+    median = median(price, na.rm = TRUE),
+    Quin3 = quantile(price, probs = 0.6, na.rm = TRUE),
+    Quin4 = quantile(price, probs = 0.8, na.rm = TRUE),
+    max = max(price, na.rm = TRUE),
+    mean = mean(price),
+    sd = sd(price),
+    count = n()
+  )
+
+#turns data frame into table using knitr
+suppressWarnings(
+  diamondFrame %>%
+    kable(digits = 2) %>%
+    kable_styling()
+)
+```
+
+This is a Table of Diamond data showing some summary statistics of a diamonds price based on its cut. From This table we can see that as the cuts quality improves its price does not follow. This means that a diamonds price is mostly determined by other factors like carat.
+
+## Reflection
+
+This year I have learned many things in R such as functions when making the collatz conjecture, Data visualizations such as the histogram and diamonds scatter plot from earlier, Data wrangling from activity 08, How to make Table like the one above, and most importantly how to search the internet for fixes to problems that I have.
+
+## File Directory
+
+```{r image}
+knitr::include_graphics("FileDir.PNG")
+```
+
+## Github
+
+https://github.com/AdamStrategy/Activity10
+
+## Code Appendix
+
+```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE} 
+```
